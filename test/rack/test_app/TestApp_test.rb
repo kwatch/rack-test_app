@@ -13,11 +13,11 @@ require_relative '../../test_helper'
 describe Rack::TestApp do
 
 
-  describe '::RELEASE' do
+  describe '::VERSION' do
 
     it "represents release version number." do
       expected = '$Release: 0.0.0 $'.split()[1]
-      assert_equal expected, Rack::TestApp::RELEASE
+      assert_equal expected, Rack::TestApp::VERSION
     end
 
   end

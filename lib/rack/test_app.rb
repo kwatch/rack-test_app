@@ -15,7 +15,7 @@ module Rack
 
   module TestApp
 
-    RELEASE = '$Release: 0.0.0 $'.split()[1]
+    VERSION = '$Release: 0.0.0 $'.split()[1]
 
   end
 
