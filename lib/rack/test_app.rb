@@ -68,6 +68,56 @@ module Rack
     end
 
 
+    class MultipartBuilder
+
+      def initialize(boundary=nil)
+        #; [!ajfgl] sets random string as boundary when boundary is nil.
+        @boundary = boundary || Util.randstr_b64()
+        @params = []
+      end
+
+      attr_reader :boundary
+
+      def add(name, value, filename=nil, content_type=nil)
+        #; [!tp4bk] detects content type from filename when filename is not nil.
+        content_type ||= Util.guess_content_type(filename) if filename
+        @params << [name, value, filename, content_type]
+        self
+      end
+
+      def add_file(name, file, content_type=nil)
+        #; [!uafqa] detects content type from filename when content type is not provided.
+        content_type ||= Util.guess_content_type(file.path)
+        #; [!b5811] reads file content and adds it as param value.
+        add(name, file.read(), ::File.basename(file.path), content_type)
+        #; [!36bsu] closes opened file automatically.
+        file.close()
+        self
+      end
+
+      def to_s
+        #; [!61gc4] returns multipart form string.
+        boundary = @boundary
+        s = "".force_encoding('ASCII-8BIT')
+        @params.each do |name, value, filename, content_type|
+          s <<   "--#{boundary}\r\n"
+          if filename
+            s << "Content-Disposition: form-data; name=\"#{name}\"; filename=\"#{filename}\"\r\n"
+          else
+            s << "Content-Disposition: form-data; name=\"#{name}\"\r\n"
+          end
+          s <<   "Content-Type: #{content_type}\r\n" if content_type
+          s <<   "\r\n"
+          s <<   value.force_encoding('ASCII-8BIT')
+          s <<   "\r\n"
+        end
+        s <<     "--#{boundary}--\r\n"
+        return s
+      end
+
+    end
+
+
   end
 
 
