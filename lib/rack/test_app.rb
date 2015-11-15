@@ -7,8 +7,11 @@
 ###
 
 
+require 'json'
 require 'uri'
+require 'stringio'
 require 'digest/sha1'
+
 require 'rack'
 
 
@@ -115,6 +118,131 @@ module Rack
         return s
       end
 
+    end
+
+
+    ##
+    ## Builds environ hash object.
+    ##
+    ## ex:
+    ##   json = {"x"=>1, "y"=>2}
+    ##   env = Rack::TestApp.new_env(:POST, '/api/entry?x=1', json: json)
+    ##   p env['REQUEST_METHOD']    #=> 'POST'
+    ##   p env['PATH_INFO']         #=> '/api/entry'
+    ##   p env['QUERY_STRING']      #=> 'x=1'
+    ##   p env['CONTENT_TYPE']      #=> 'application/json'
+    ##   p JSON.parse(env['rack.input'].read())  #=> {"x"=>1, "y"=>2}
+    ##
+    def self.new_env(meth=:GET, path="/", query: nil, form: nil, multipart: nil, json: nil, input: nil, headers: nil, cookie: nil, env: nil)
+      #uri = "http://localhost:80#{path}"
+      #opts["REQUEST_METHOD"] = meth
+      #env = Rack::MockRequest.env_for(uri, opts)
+      #
+      #; [!j879z] sets 'HTTPS' with 'on' when 'rack.url_scheme' is 'https'.
+      #; [!vpwvu] sets 'HTTPS' with 'on' when 'HTTPS' is 'on'.
+      https = env && (env['rack.url_scheme'] == 'https' || env['HTTPS'] == 'on')
+      #
+      err = proc {|a, b|
+        ArgumentError.new("new_env(): not allowed both '#{a}' and '#{b}' at a time.")
+      }
+      ctype = nil
+      #; [!2uvyb] raises ArgumentError when both query string and 'query' kwarg specified.
+      if query
+        arr = path.split('?', 2)
+        arr.length != 2  or
+          raise ArgumentError.new("new_env(): not allowed both query string and 'query' kwarg at a time.")
+      #; [!8tq3m] accepts query string in path string.
+      else
+        path, query = path.split('?', 2)
+      end
+      #; [!d1c83] when 'form' kwarg specified...
+      if form
+        #; [!c779l] raises ArgumentError when both 'form' and 'json' are specified.
+        ! json  or raise err.call('form', 'json')
+        input = Util.build_query_string(form)
+        #; [!5iv35] sets content type with 'application/x-www-form-urlencoded'.
+        ctype = "application/x-www-form-urlencoded"
+      end
+      #; [!prv5z] when 'json' kwarg specified...
+      if json
+        #; [!2o0ph] raises ArgumentError when both 'json' and 'multipart' are specified.
+        ! multipart  or raise err.call('json', 'multipart')
+        input = json.is_a?(String) ? json : JSON.dump(json)
+        #; [!ta24a] sets content type with 'application/json'.
+        ctype = "application/json"
+      end
+      #; [!dnvgj] when 'multipart' kwarg specified...
+      if multipart
+        #; [!b1d1t] raises ArgumentError when both 'multipart' and 'form' are specified.
+        ! form  or raise err.call('multipart', 'form')
+        #; [!gko8g] 'multipart:' kwarg accepts Hash object (which is converted into multipart data).
+        if multipart.is_a?(Hash)
+          dict = multipart
+          multipart = dict.each_with_object(MultipartBuilder.new) do |(k, v), mp|
+            v.is_a?(::File) ? mp.add_file(k, v) : mp.add(k, v.to_s)
+          end
+        end
+        input = multipart.to_s
+        #; [!dq33d] sets content type with 'multipart/form-data'.
+        m = /\A--(\S+)\r\n/.match(input)  or
+          raise ArgumentError.new("invalid multipart format.")
+        boundary = $1
+        ctype = "multipart/form-data; boundary=#{boundary}"
+      end
+      #; [!na9w6] builds environ hash object.
+      environ = {
+        "rack.version"      => [1, 3],
+        "rack.input"        => StringIO.new(input || ""),
+        "rack.errors"       => StringIO.new,
+        "rack.multithread"  => true,
+        "rack.multiprocess" => true,
+        "rack.run_once"     => false,
+        "rack.url_scheme"   => https ? "https" : "http",
+        "REQUEST_METHOD"    => meth.to_s,
+        "SERVER_NAME"       => "localhost",
+        "SERVER_PORT"       => https ? "443" : "80",
+        "QUERY_STRING"      => Util.build_query_string(query || ""),
+        "PATH_INFO"         => path,
+        "HTTPS"             => https ? "on" : "off",
+        "SCRIPT_NAME"       => "",
+        "CONTENT_LENGTH"    => (input ? input.bytesize.to_s : "0"),
+        "CONTENT_TYPE"      => ctype,
+      }
+      #; [!ezvdn] unsets CONTENT_TYPE when not input.
+      environ.delete("CONTENT_TYPE") unless input
+      #; [!r4jz8] copies 'headers' kwarg content into environ with 'HTTP_' prefix.
+      headers.each do |name, value|
+        name =~ /\A[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*\z/  or
+          raise ArgumentError.new("invalid http header name: #{name.inspect}")
+        value.is_a?(String)  or
+          raise ArgumentError.new("http header value should be a string but got: #{value.inspect}")
+        ## ex: 'X-Requested-With' -> 'HTTP_X_REQUESTED_WITH'
+        k = "HTTP_#{name.upcase.gsub(/-/, '_')}"
+        environ[k] = value
+      end if headers
+      #; [!a47n9] copies 'env' kwarg content into environ.
+      env.each do |name, value|
+        case name
+        when /\Arack\./
+          # ok
+        when /\A[A-Z]+(_[A-Z0-9]+)*\z/
+          value.is_a?(String)  or
+            raise ArgumentError.new("rack env value should be a string but got: #{value.inspect}")
+        else
+          raise ArgumentError.new("invalid rack env key: #{name}")
+        end
+        environ[name] = value
+      end if env
+      #; [!pmefk] sets 'HTTP_COOKIE' when 'cookie' kwarg specified.
+      if cookie
+        s = cookie.is_a?(Hash) ? cookie.map {|k, v|
+          "#{Util.percent_encode(k)}=#{Util.percent_encode(v)}"
+        }.join('; ') : cookie.to_s
+        s = "#{environ['HTTP_COOKIE']}; #{s}" if environ['HTTP_COOKIE']
+        environ['HTTP_COOKIE'] = s
+      end
+      #; [!b3ts8] returns environ hash object.
+      return environ
     end
 
 
