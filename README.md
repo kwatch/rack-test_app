@@ -1,41 +1,122 @@
 # Rack::TestApp
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rack/test_app`. To experiment with that code, run `bin/console` for an interactive prompt.
 
-TODO: Delete this and the text above, and describe your gem
+Rack::TestApp is another testing helper library for Rack application.
+IMO, it is more intuitive than Rack::Test.
+
+Rack::TestApp requires Ruby >= 2.0.
+
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'rack-test_app'
+```console
+$ gem install rack-test_app
 ```
 
-And then execute:
+Or:
 
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install rack-test_app
-
-## Usage
-
-TODO: Write usage instructions here
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/rack-test_app.
+```console
+$ echo "gem 'rack-test_app'" >> Gemfile
+$ bundle
+```
 
 
-## License
+## Example
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+```ruby
+require 'rack'
+require 'rack/lint'
+require 'rack/test_app'
 
+## sample Rack app
+app = proc {|env|
+  text = "{\"status\":\"OK\"}"
+  headers = {"Content-Type"   => "application/json",
+             "Content-Length" => text.bytesize.to_s}
+  [200, headers, [text]]
+}
+
+## crate wrapper objects
+http  = Rack::TestApp.wrap(Rack::Lint.new(app))
+https = Rack::TestApp.wrap(Rack::Lint.new(app), env: {'HTTPS'=>'on'})
+
+## simulates http request
+result = http.GET('/api/hello', query: {'name'=>'World'})
+    # or http.get(...) if you like.
+
+## test result
+r = result
+assert_equal 200, r.status
+assert_equal "application/json",    r.headers['Content-Type']
+assert_equal "application/json",    r.content_type
+assert_equal 15,                    r.content_length
+assert_equal ({"status"=>"OK"}),    r.body_json
+assert_equal "{\"status\":\"OK\"}", r.body_text
+assert_equal "{\"status\":\"OK\"}", r.body_binary   # encoing: ASCII-8BIT
+assert_equal nil,                   r.location
+
+## (experimental) confirm environ object (if you want)
+#p http.last_env
+```
+
+* You can call `http.get()`/`http.post()` instead of `http.GET()`/`http.POST()`
+  if you prefer.
+* `http.last_env` is an experimental feature (may be dropped in the future).
+
+
+## More Examples
+
+```ruby
+## query string
+r = http.GET('/api/hello', query: 'name=World')
+r = http.GET('/api/hello', query: {'name'=>'World'})
+
+## form parameters
+r = http.POST('/api/hello', form: 'name=World')
+r = http.POST('/api/hello', form: {'name'=>'World'})
+
+## json
+r = http.POST('/api/hello', json: {'name'=>'World'})
+
+## multipart
+mp = {
+  "name1" => "value1",
+  "file1" => File.open("data/example1.jpg", 'rb'),
+}
+r = http.POST('/api/hello', multipart: mp)
+
+## multipart #2
+boundary = "abcdefg1234567"   # or nil
+mp = Rack::TestApp::MultipartBuilder.new(boundary)
+mp.add("name1", "value1")
+mp.add("file1", File.read('data/example1.jpg'), "example1.jpg", "image/jpeg")
+r = http.POST('/api/hello', multipart: mp)
+
+## input
+r = http.POST('/api/hello', input: "x=1&y=2&z=3")
+
+## headers
+r = http.GET('/api/hello', headers: {"X-Requested-With"=>"XMLHttpRequest"})
+
+## cookies
+r = http.GET('/api/hello', cookies: "name1=value1")
+r = http.GET('/api/hello', cookies: {"name1"=>"value1"})
+r = http.GET('/api/hello', cookies: {"name1"=>{:name=>'name1', :value=>'value1'}})
+
+## cookies #2
+r1 = http.POST('/api/login')
+r2 = http.GET('/api/hello', cookies: r1.cookies)
+http.with(cookies: r1.cookies, headers: {}) do |http_|
+  r3 = http_.GET('/api/hello')
+end
+
+## env
+r = http.GET('/api/hello', env: {"HTTPS"=>"on"})
+```
+
+
+## Copyright and License
+
+$Copyright: copyright(c) 2015 kuwata-lab.com all rights reserved $
+
+$License: MIT-LICENSE $
