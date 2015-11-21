@@ -18,6 +18,7 @@ describe Rack::TestApp::Wrapper do
     text = "" if env['REQUEST_METHOD'] == 'HEAD'
     [200, {"Content-Type"=>"text/plain;charset=utf-8"}, [text]]
   }
+  app = Rack::Lint.new(app)
 
 
   describe '#initialize()' do
