@@ -237,10 +237,15 @@ module Rack
         boundary = $1
         ctype = "multipart/form-data; boundary=#{boundary}"
       end
+      #
+      input ||= ""
+      input = input.encode('ascii-8bit') if input.encoding != Encoding::ASCII_8BIT
+      query_str = Util.build_query_string(query || "")
+      query_str = query_str.encode('ascii-8bit')
       #; [!na9w6] builds environ hash object.
       environ = {
         "rack.version"      => [1, 3],
-        "rack.input"        => StringIO.new(input || ""),
+        "rack.input"        => StringIO.new(input),
         "rack.errors"       => StringIO.new,
         "rack.multithread"  => true,
         "rack.multiprocess" => true,
@@ -249,7 +254,7 @@ module Rack
         "REQUEST_METHOD"    => meth.to_s,
         "SERVER_NAME"       => "localhost",
         "SERVER_PORT"       => https ? "443" : "80",
-        "QUERY_STRING"      => Util.build_query_string(query || ""),
+        "QUERY_STRING"      => query_str,
         "PATH_INFO"         => path,
         "HTTPS"             => https ? "on" : "off",
         "SCRIPT_NAME"       => "",
@@ -257,7 +262,7 @@ module Rack
         "CONTENT_TYPE"      => ctype,
       }
       #; [!ezvdn] unsets CONTENT_TYPE when not input.
-      environ.delete("CONTENT_TYPE") unless input
+      environ.delete("CONTENT_TYPE") if input.empty?
       #; [!r4jz8] copies 'headers' kwarg content into environ with 'HTTP_' prefix.
       headers.each do |name, value|
         name =~ /\A[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*\z/  or
