@@ -418,6 +418,16 @@ module Rack
       def OPTIONS path, kwargs={}; request(:OPTIONS, path, kwargs); end
       def TRACE   path, kwargs={}; request(:TRACE  , path, kwargs); end
 
+      ## define aliases because ruby programmer prefers #get() rather than #GET().
+      alias get     GET
+      alias post    POST
+      alias put     PUT
+      alias delete  DELETE
+      alias head    HEAD
+      alias patch   PATCH
+      alias options OPTIONS
+      alias trace   TRACE
+
     end
 
 
