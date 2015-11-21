@@ -188,14 +188,14 @@ describe Rack::TestApp do
     end
 
     it "[!pmefk] sets 'HTTP_COOKIE' when 'cookie' kwarg specified." do
-      env = Rack::TestApp.new_env(cookie: 'c1=v1')
+      env = Rack::TestApp.new_env(cookies: 'c1=v1')
       assert_equal 'c1=v1', env['HTTP_COOKIE']
-      env = Rack::TestApp.new_env(cookie: {'c2'=>'v2'})
+      env = Rack::TestApp.new_env(cookies: {'c2'=>'v2'})
       assert_equal 'c2=v2', env['HTTP_COOKIE']
     end
 
     it "[!qj7b8] cookie value can be {:name=>'name', :value=>'value'}." do
-      env = Rack::TestApp.new_env(cookie: {'c3'=>{name: 'c3', value: 'v3'}})
+      env = Rack::TestApp.new_env(cookies: {'c3'=>{name: 'c3', value: 'v3'}})
       assert_equal 'c3=v3', env['HTTP_COOKIE']
     end
 

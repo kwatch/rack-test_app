@@ -181,7 +181,7 @@ module Rack
     ##   p env['CONTENT_TYPE']      #=> 'application/json'
     ##   p JSON.parse(env['rack.input'].read())  #=> {"x"=>1, "y"=>2}
     ##
-    def self.new_env(meth=:GET, path="/", query: nil, form: nil, multipart: nil, json: nil, input: nil, headers: nil, cookie: nil, env: nil)
+    def self.new_env(meth=:GET, path="/", query: nil, form: nil, multipart: nil, json: nil, input: nil, headers: nil, cookies: nil, env: nil)
       #uri = "http://localhost:80#{path}"
       #opts["REQUEST_METHOD"] = meth
       #env = Rack::MockRequest.env_for(uri, opts)
@@ -288,12 +288,12 @@ module Rack
         environ[name] = value
       end if env
       #; [!pmefk] sets 'HTTP_COOKIE' when 'cookie' kwarg specified.
-      if cookie
-        s = cookie.is_a?(Hash) ? cookie.map {|k, v|
+      if cookies
+        s = cookies.is_a?(Hash) ? cookies.map {|k, v|
           #; [!qj7b8] cookie value can be {:name=>'name', :value=>'value'}.
           v = v[:value] if v.is_a?(Hash) && v[:value]
           "#{Util.percent_encode(k)}=#{Util.percent_encode(v)}"
-        }.join('; ') : cookie.to_s
+        }.join('; ') : cookies.to_s
         s = "#{environ['HTTP_COOKIE']}; #{s}" if environ['HTTP_COOKIE']
         environ['HTTP_COOKIE'] = s
       end
@@ -405,13 +405,13 @@ module Rack
 
       attr_reader :last_env
 
-      def request(meth, path, query: nil, form: nil, multipart: nil, json: nil, input: nil, headers: nil, cookie: nil, env: nil)
+      def request(meth, path, query: nil, form: nil, multipart: nil, json: nil, input: nil, headers: nil, cookies: nil, env: nil)
         #; [!r6sod] merges @env if passed for initializer.
         env = env ? env.merge(@env) : @env if @env
         #; [!4xpwa] creates env object and calls app with it.
         environ = TestApp.new_env(meth, path,
                                   query: query, form: form, multipart: multipart, json: json,
-                                  input: input, headers: headers, cookie: cookie, env: env)
+                                  input: input, headers: headers, cookies: cookies, env: env)
         @last_env = environ
         tuple = @app.call(environ)
         status, headers, body = tuple
