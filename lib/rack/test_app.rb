@@ -237,9 +237,10 @@ module Rack
         boundary = $1
         ctype = "multipart/form-data; boundary=#{boundary}"
       end
-      #
+      #; [!7hfri] converts input string into binary.
       input ||= ""
       input = input.encode('ascii-8bit') if input.encoding != Encoding::ASCII_8BIT
+      #; [!r3soc] converts query string into binary.
       query_str = Util.build_query_string(query || "")
       query_str = query_str.encode('ascii-8bit')
       #; [!na9w6] builds environ hash object.

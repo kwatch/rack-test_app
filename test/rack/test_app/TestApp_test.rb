@@ -125,6 +125,20 @@ describe Rack::TestApp do
 
     end
 
+    it "[!7hfri] converts input string into binary." do
+      form = {"x"=>"あいうえお"}
+      env = Rack::TestApp.new_env(:POST, '/api/hello', form: form)
+      s = env['rack.input'].read()
+      assert_equal Encoding::ASCII_8BIT, s.encoding
+    end
+
+    it "[!r3soc] converts query string into binary." do
+      query = {"x"=>"あいうえお"}
+      env = Rack::TestApp.new_env(:POST, '/api/hello', query: query)
+      s = env['QUERY_STRING']
+      assert_equal Encoding::ASCII_8BIT, s.encoding
+    end
+
     it "[!na9w6] builds environ hash object." do
       env = Rack::TestApp.new_env(:POST, '/api/session?q=test')
       #
