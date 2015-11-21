@@ -290,6 +290,8 @@ module Rack
       #; [!pmefk] sets 'HTTP_COOKIE' when 'cookie' kwarg specified.
       if cookie
         s = cookie.is_a?(Hash) ? cookie.map {|k, v|
+          #; [!qj7b8] cookie value can be {:name=>'name', :value=>'value'}.
+          v = v[:value] if v.is_a?(Hash) && v[:value]
           "#{Util.percent_encode(k)}=#{Util.percent_encode(v)}"
         }.join('; ') : cookie.to_s
         s = "#{environ['HTTP_COOKIE']}; #{s}" if environ['HTTP_COOKIE']

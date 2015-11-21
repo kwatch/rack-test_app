@@ -194,6 +194,11 @@ describe Rack::TestApp do
       assert_equal 'c2=v2', env['HTTP_COOKIE']
     end
 
+    it "[!qj7b8] cookie value can be {:name=>'name', :value=>'value'}." do
+      env = Rack::TestApp.new_env(cookie: {'c3'=>{name: 'c3', value: 'v3'}})
+      assert_equal 'c3=v3', env['HTTP_COOKIE']
+    end
+
   end
 
 
