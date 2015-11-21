@@ -15,6 +15,7 @@ describe Rack::TestApp::Wrapper do
   app = proc {|env|
     text = "#{env['REQUEST_METHOD']} #{env['PATH_INFO']}"
     text << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].to_s.empty?
+    text = "" if env['REQUEST_METHOD'] == 'HEAD'
     [200, {"Content-Type"=>"text/plain;charset=utf-8"}, [text]]
   }
 
@@ -112,7 +113,7 @@ describe Rack::TestApp::Wrapper do
     it "requests with HEAD method." do
       wrapper = Rack::TestApp::Wrapper.new(app)
       r = wrapper.HEAD('/api/foo', query: {"id"=>123})
-      assert_equal "HEAD /api/foo?id=123", r.body_text
+      assert_equal "", r.body_text
     end
 
   end
