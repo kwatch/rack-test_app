@@ -37,6 +37,32 @@ describe Rack::TestApp::Wrapper do
   end
 
 
+  describe '#with()' do
+
+    it "[!0bk12] returns new wrapper object, keeping cookies and headers." do
+      wrapper = Rack::TestApp::Wrapper.new(app)
+      cookies = {'k1'=>{name: 'k1', value: 'v1'}}
+      headers = {'X-Requested-With'=>'XMLHttpRequest'}
+      new_wrapper = wrapper.with(cookies: cookies, headers: headers)
+      assert_kind_of Rack::TestApp::Wrapper, new_wrapper
+      expected = {"HTTP_X_REQUESTED_WITH"=>"XMLHttpRequest", "HTTP_COOKIE"=>"k1=v1"}
+      assert_equal expected, new_wrapper.instance_variable_get('@env')
+    end
+
+    it "[!mkdbu] yields with new wrapper object if block given." do
+      wrapper = Rack::TestApp::Wrapper.new(app)
+      cookies = {'k1'=>{name: 'k1', value: 'v1'}}
+      headers = {'X-Requested-With'=>'XMLHttpRequest'}
+      wrapper.with(cookies: cookies, headers: headers) do |new_wrapper|
+        assert_kind_of Rack::TestApp::Wrapper, new_wrapper
+        expected = {"HTTP_X_REQUESTED_WITH"=>"XMLHttpRequest", "HTTP_COOKIE"=>"k1=v1"}
+        assert_equal expected, new_wrapper.instance_variable_get('@env')
+      end
+    end
+
+  end
+
+
   describe '#request()' do
 
     it "[!eb153] returns Rack::TestApp::Result object." do

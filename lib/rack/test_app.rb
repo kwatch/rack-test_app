@@ -405,6 +405,30 @@ module Rack
 
       attr_reader :last_env
 
+      ##
+      ## helper method to create new wrapper object keeping cookies and headers.
+      ##
+      ## ex:
+      ##   http  = Rack::TestApp.wrap(Rack::Lint.new(app))
+      ##   r1 = http.POST('/api/login', form: {user: 'user', password: 'pass'})
+      ##   http.with(cookies: r1.cookies, headers: {}) do |http_|
+      ##     r2 = http_.GET('/api/content')    # request with r1.cookies
+      ##     assert_equal 200, r2.status
+      ##   end
+      ##
+      def with(headers: nil, cookies: nil, env: nil)
+        tmp_env = TestApp.new_env(headers: headers, cookies: cookies, env: env)
+        new_env = @env ? @env.dup : {}
+        http_headers = tmp_env.each do |k, v|
+          new_env[k] = v if k.start_with?('HTTP_')
+        end
+        new_wrapper = self.class.new(@app, new_env)
+        #; [!mkdbu] yields with new wrapper object if block given.
+        yield new_wrapper if block_given?
+        #; [!0bk12] returns new wrapper object, keeping cookies and headers.
+        new_wrapper
+      end
+
       def request(meth, path, query: nil, form: nil, multipart: nil, json: nil, input: nil, headers: nil, cookies: nil, env: nil)
         #; [!r6sod] merges @env if passed for initializer.
         env = env ? env.merge(@env) : @env if @env
