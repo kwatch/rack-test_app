@@ -183,6 +183,18 @@ describe Rack::TestApp do
       assert_equal 'XMLHttpRequest', env['HTTP_X_REQUESTED_WITH']
     end
 
+    it "[!ai9t3] don't add 'HTTP_' to Content-Length and Content-Type headers." do
+      headers = {
+        'Content-Type'           => 'application/json',
+        'Content-Length'         => '123',
+      }
+      env = Rack::TestApp.new_env(:PUT, '/', headers: headers)
+      assert_equal 'application/json', env['CONTENT_TYPE']
+      assert_equal '123',              env['CONTENT_LENGTH']
+      assert_equal false, env.key?('HTTP_CONTENT_TYPE')
+      assert_equal false, env.key?('HTTP_CONTENT_LENGTH')
+    end
+
     it "[!a47n9] copies 'env' kwarg content into environ." do
       environ = {
         'rack.session' => {'k1'=>'v1'},

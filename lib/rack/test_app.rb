@@ -271,13 +271,16 @@ module Rack
       #; [!ezvdn] unsets CONTENT_TYPE when not input.
       environ.delete("CONTENT_TYPE") if input.empty?
       #; [!r4jz8] copies 'headers' kwarg content into environ with 'HTTP_' prefix.
+      #; [!ai9t3] don't add 'HTTP_' to Content-Length and Content-Type headers.
+      excepts = ['CONTENT_LENGTH', 'CONTENT_TYPE']
       headers.each do |name, value|
         name =~ /\A[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*\z/  or
           raise ArgumentError.new("invalid http header name: #{name.inspect}")
         value.is_a?(String)  or
           raise ArgumentError.new("http header value should be a string but got: #{value.inspect}")
         ## ex: 'X-Requested-With' -> 'HTTP_X_REQUESTED_WITH'
-        k = "HTTP_#{name.upcase.gsub(/-/, '_')}"
+        k = name.upcase.gsub(/-/, '_')
+        k = "HTTP_#{k}" unless excepts.include?(k)
         environ[k] = value
       end if headers
       #; [!a47n9] copies 'env' kwarg content into environ.
