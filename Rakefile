@@ -25,8 +25,11 @@ How to release:
     $ git commit -a -m "release preparation for 1.0.0"
     $ rake build                # for confirmation
     $ rake install              # for confirmation
-    $ rake release
-    $ git push -u --tags origin rel-1.0
+    $ #rake release
+    $ gem push pkg/rack-test_app-1.0.0.gem
+    $ git tag rel-1.0.0
+    $ git push -u origin rel-1.0
+    $ git push --tags
 END
 
 end
