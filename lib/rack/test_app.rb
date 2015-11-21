@@ -389,7 +389,7 @@ module Rack
     ##   require 'rack/test_app'
     ##   http  = Rack::TestApp.wrap(Rack::Lint.new(app))
     ##   https = Rack::TestApp.wrap(Rack::Lint.new(app)), env: {'HTTPS'=>'on'})
-    ##   resp = http.GET('/api/hello', query={'name'=>'World'})
+    ##   resp = http.GET('/api/hello', query: {'name'=>'World'})
     ##   assert_equal 200, resp.status
     ##   assert_equal "application/json", resp.headers['Content-Type']
     ##   assert_equal {"message"=>"Hello World!"}, resp.body_json
