@@ -294,6 +294,83 @@ module Rack
     end
 
 
+    class Result
+
+      def initialize(status, headers, body)
+        #; [!3lcsj] accepts response status, headers and body.
+        @status  = status
+        @headers = headers
+        @body    = body
+        #; [!n086q] parses 'Set-Cookie' header.
+        @cookies = {}
+        raw_str = @headers['Set-Cookie'] || @headers['set-cookie']
+        raw_str.split(/\r?\n/).each do |s|
+          if s && ! s.empty?
+            c = Util.parse_set_cookie(s)
+            @cookies[c[:name]] = c
+          end
+        end if raw_str
+      end
+
+      attr_accessor :status, :headers, :body, :cookies
+
+      def body_binary
+        #; [!mb0i4] returns body as binary string.
+        s = @body.join()
+        @body.close() if @body.respond_to?(:close)
+        return s
+      end
+
+      def body_text
+        #; [!rr18d] error when 'Content-Type' header is missing.
+        ctype = self.content_type  or
+          raise TypeError.new("body_text(): missing 'Content-Type' header.")
+        #; [!dou1n] converts body text according to 'charset' in 'Content-Type' header.
+        if ctype =~ /; *charset=(\w[-\w]*)/
+          charset = $1
+        #; [!cxje7] assumes charset as 'utf-8' when 'Content-Type' is json.
+        elsif ctype == "application/json"
+          charset = 'utf-8'
+        #; [!n4c71] error when non-json 'Content-Type' header has no 'charset'.
+        else
+          raise TypeError.new("body_text(): missing 'charset' in 'Content-Type' header.")
+        end
+        #; [!vkj9h] returns body as text string, according to 'charset' in 'Content-Type'.
+        return body_binary().force_encoding(charset)
+      end
+
+      def body_json
+        #; [!qnic1] returns Hash object representing JSON string.
+        return JSON.parse(body_text())
+      end
+
+      def content_type
+        #; [!40hcz] returns 'Content-Type' header value.
+        return @headers['Content-Type'] || @headers['content-type']
+      end
+
+      def content_length
+        #; [!5lb19] returns 'Content-Length' header value as integer.
+        #; [!qjktz] returns nil when 'Content-Length' is not set.
+        len = @headers['Content-Length'] || @headers['content-length']
+        return len ? Integer(len) : len
+      end
+
+      def location
+        #; [!8y8lg] returns 'Location' header value.
+        return @headers['Location'] || @headers['location']
+      end
+
+      def cookie_value(name)
+        #; [!neaf8] returns cookie value if exists.
+        #; [!oapns] returns nil if cookie not exists.
+        c = @cookies[name]
+        return c ? c[:value] : nil
+      end
+
+    end
+
+
   end
 
 
