@@ -125,6 +125,11 @@ describe Rack::TestApp do
 
     end
 
+    it "[!iamrk] uses 'application/x-www-form-urlencoded' as default content type of input." do
+      env = Rack::TestApp.new_env(:POST, '/', input: 'x=1')
+      assert_equal 'application/x-www-form-urlencoded', env['CONTENT_TYPE']
+    end
+
     it "[!7hfri] converts input string into binary." do
       form = {"x"=>"あいうえお"}
       env = Rack::TestApp.new_env(:POST, '/api/hello', form: form)

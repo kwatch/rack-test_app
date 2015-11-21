@@ -237,6 +237,12 @@ module Rack
         boundary = $1
         ctype = "multipart/form-data; boundary=#{boundary}"
       end
+      #; [!iamrk] uses 'application/x-www-form-urlencoded' as default content type of input.
+      if input && ! ctype
+        ctype ||= headers['Content-Type'] || headers['content-type'] if headers
+        ctype ||= env['CONTENT_TYPE'] if env
+        ctype ||= "application/x-www-form-urlencoded"
+      end
       #; [!7hfri] converts input string into binary.
       input ||= ""
       input = input.encode('ascii-8bit') if input.encoding != Encoding::ASCII_8BIT
