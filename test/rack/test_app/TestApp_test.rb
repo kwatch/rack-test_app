@@ -183,4 +183,18 @@ describe Rack::TestApp do
   end
 
 
+  describe '.wrap()' do
+
+    it "[!grqlf] creates new Wrapper object." do
+      app = proc {|env| [200, {}, []] }
+      env = {"HTTPS"=>"on"}
+      wrapper = Rack::TestApp.wrap(app, env)
+      assert_kind_of Rack::TestApp::Wrapper, wrapper
+      assert_equal app, wrapper.instance_variable_get('@app')
+      assert_equal env, wrapper.instance_variable_get('@env')
+    end
+
+  end
+
+
 end

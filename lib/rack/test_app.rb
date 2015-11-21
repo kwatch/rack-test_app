@@ -421,6 +421,13 @@ module Rack
     end
 
 
+    ## Use Rack::TestApp.wrap(app) instead of Rack::TestApp::Wrapper.new(app).
+    def self.wrap(app, env=nil)
+      #; [!grqlf] creates new Wrapper object.
+      return Wrapper.new(app, env)
+    end
+
+
   end
 
 
