@@ -52,6 +52,54 @@ module Rack
         end
       end
 
+      COOKIE_KEYS = {
+        'path'     => :path,
+        'domain'   => :domain,
+        'expires'  => :expires,
+        'max-age'  => :max_age,
+        'httponly' => :httponly,
+        'secure'   => :secure,
+      }
+
+      def parse_set_cookie(set_cookie_value)
+        #; [!hvvu4] parses 'Set-Cookie' header value and returns hash object.
+        keys = COOKIE_KEYS
+        d = {}
+        set_cookie_value.split(/;\s*/).each do |string|
+          #; [!h75uc] sets true when value is missing such as 'secure' or 'httponly' attribute.
+          k, v = string.strip().split('=', 2)
+          #
+          if d.empty?
+            d[:name]  = k
+            d[:value] = v
+          elsif (sym = keys[k.downcase])
+            #; [!q1h29] sets true as value for Secure or HttpOnly attribute.
+            #; [!50iko] raises error when attribute value specified for Secure or HttpOnly attirbute.
+            if sym == :secure || sym == :httponly
+              v.nil?  or
+                raise TypeError.new("#{k}=#{v}: unexpected attribute value.")
+              v = true
+            #; [!sucrm] raises error when attribute value is missing when neighter Secure nor HttpOnly.
+            else
+              ! v.nil?  or
+                raise TypeError.new("#{k}: attribute value expected but not specified.")
+              #; [!f3rk7] converts string into integer for Max-Age attribute.
+              #; [!wgzyz] raises error when Max-Age attribute value is not a positive integer.
+              if sym == :max_age
+                v =~ /\A\d+\z/  or
+                  raise TypeError.new("#{k}=#{v}: positive integer expected.")
+                v = v.to_i
+              end
+            end
+            d[sym] = v
+          #; [!8xg63] raises ArgumentError when unknown attribute exists.
+          else
+            raise TypeError.new("#{k}=#{v}: unknown cookie attribute.")
+          end
+        end
+        return d
+      end
+
       def randstr_b64()
         #; [!yq0gv] returns random string, encoded with urlsafe base64.
         ## Don't use SecureRandom; entropy of /dev/random or /dev/urandom

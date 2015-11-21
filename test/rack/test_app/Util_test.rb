@@ -66,6 +66,74 @@ describe Rack::TestApp::Util do
   end
 
 
+  describe '.#parse_set_cookie()' do
+
+    it "[!hvvu4] parses 'Set-Cookie' header value and returns hash object." do
+      set_cookie = "name1=value1; Domain=localhost; Path=/; Expires=Monday, 15-Aug-2005 15:52:01 UTC; Max-Age=3600; Secure; HttpOnly"
+      expected = {
+        :name     => "name1",
+        :value    => "value1",
+        :domain   => "localhost",
+        :path     => "/",
+        :expires  => "Monday, 15-Aug-2005 15:52:01 UTC",
+        :max_age  => 3600,
+        :secure   => true,
+        :httponly => true,
+      }
+      actual = Rack::TestApp::Util.parse_set_cookie(set_cookie)
+      assert_equal expected, actual
+    end
+
+    it "[!q1h29] sets true as value for Secure or HttpOnly attribute." do
+      set_cookie = "name1=value1; secure; httponly"
+      expected = {
+        :name     => "name1",
+        :value    => "value1",
+        :secure   => true,
+        :httponly => true,
+      }
+      actual = Rack::TestApp::Util.parse_set_cookie(set_cookie)
+      assert_equal expected, actual
+    end
+
+    it "[!50iko] raises error when attribute value specified for Secure or HttpOnly attirbute." do
+      set_cookie = "name1=value1; Secure=1"
+      ex = assert_raises(TypeError) { Rack::TestApp::Util.parse_set_cookie(set_cookie) }
+      assert_equal "Secure=1: unexpected attribute value.", ex.message
+      #
+      set_cookie = "name1=value1; HttpOnly=1"
+      ex = assert_raises(TypeError) { Rack::TestApp::Util.parse_set_cookie(set_cookie) }
+      assert_equal "HttpOnly=1: unexpected attribute value.", ex.message
+    end
+
+    it "[!sucrm] raises error when attribute value is missing when neighter Secure nor HttpOnly." do
+      set_cookie = "name1=value1; Path"
+      ex = assert_raises(TypeError) { Rack::TestApp::Util.parse_set_cookie(set_cookie) }
+      assert_equal "Path: attribute value expected but not specified.", ex.message
+    end
+
+    it "[!f3rk7] converts string into integer for Max-Age attribute." do
+      set_cookie = "name1=value1; Max-Age=3600"
+      c = Rack::TestApp::Util.parse_set_cookie(set_cookie)
+      assert_equal 3600, c[:max_age]
+      assert_kind_of Fixnum, c[:max_age]
+    end
+
+    it "[!wgzyz] raises error when Max-Age attribute value is not a positive integer." do
+      set_cookie = "name1=value1; Max-Age=30sec"
+      ex = assert_raises(TypeError) { Rack::TestApp::Util.parse_set_cookie(set_cookie) }
+      assert_equal "Max-Age=30sec: positive integer expected.", ex.message
+    end
+
+    it "[!8xg63] raises ArgumentError when unknown attribute exists." do
+      set_cookie = "name1=value1; MaxAge=3600"
+      ex = assert_raises(TypeError) { Rack::TestApp::Util.parse_set_cookie(set_cookie) }
+      assert_equal "MaxAge=3600: unknown cookie attribute.", ex.message
+    end
+
+  end
+
+
   describe '.#randstr_b64()' do
 
     it "[!yq0gv] returns random string, encoded with urlsafe base64." do
