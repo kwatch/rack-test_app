@@ -10,6 +10,28 @@ end
 task :default => :test
 
 
+desc "show how to release"
+task :help do
+  puts <<END
+How to release:
+
+    $ git checkout dev
+    $ git diff
+    $ which ruby
+    $ rake test                 # for confirmation
+    $ git checkout -b rel-1.0   # or git checkout rel-1.0
+    $ rake edit rel=1.0.0
+    $ git diff
+    $ git commit -a -m "release preparation for 1.0.0"
+    $ rake build                # for confirmation
+    $ rake install              # for confirmation
+    $ rake release
+    $ git push -u --tags origin rel-1.0
+END
+
+end
+
+
 desc "edit files (for release preparation)"
 task :edit do
   rel = ENV['rel']  or
