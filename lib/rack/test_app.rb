@@ -316,7 +316,8 @@ module Rack
 
       def body_binary
         #; [!mb0i4] returns body as binary string.
-        s = @body.join()
+        buf = []; @body.each {|x| buf << x }
+        s = buf.join()
         @body.close() if @body.respond_to?(:close)
         return s
       end
