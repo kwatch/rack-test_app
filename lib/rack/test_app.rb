@@ -405,7 +405,8 @@ module Rack
                                   query: query, form: form, multipart: multipart, json: json,
                                   input: input, headers: headers, cookie: cookie, env: env)
         @last_env = environ
-        status, headers, body = @app.call(environ)
+        tuple = @app.call(environ)
+        status, headers, body = tuple
         #; [!eb153] returns Rack::TestApp::Result object.
         return Result.new(status, headers, body)
       end
