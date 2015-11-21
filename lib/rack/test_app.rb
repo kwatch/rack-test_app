@@ -251,7 +251,7 @@ module Rack
       query_str = query_str.encode('ascii-8bit')
       #; [!na9w6] builds environ hash object.
       environ = {
-        "rack.version"      => [1, 3],
+        "rack.version"      => Rack::VERSION,
         "rack.input"        => StringIO.new(input),
         "rack.errors"       => StringIO.new,
         "rack.multithread"  => true,

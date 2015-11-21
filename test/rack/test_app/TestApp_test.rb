@@ -147,7 +147,9 @@ describe Rack::TestApp do
     it "[!na9w6] builds environ hash object." do
       env = Rack::TestApp.new_env(:POST, '/api/session?q=test')
       #
-      assert_equal [1, 3]          , env['rack.version']
+      assert_equal Rack::VERSION   , env['rack.version']
+      assert_kind_of Array         , env['rack.version']
+      assert_match /\A\[1, \d+\]\z/, env['rack.version'].inspect
       assert_kind_of StringIO      , env['rack.input']
       assert_kind_of StringIO      , env['rack.errors']
       assert_equal true            , env['rack.multithread']
