@@ -371,6 +371,56 @@ module Rack
     end
 
 
+    ##
+    ## Wrapper class to test Rack application.
+    ## Use 'Rack::TestApp.wrap(app)' instead of 'Rack::TestApp::Wrapper.new(app)'.
+    ##
+    ## ex:
+    ##   require 'rack/lint'
+    ##   require 'rack/test_app'
+    ##   http  = Rack::TestApp.wrap(Rack::Lint.new(app))
+    ##   https = Rack::TestApp.wrap(Rack::Lint.new(app)), env: {'HTTPS'=>'on'})
+    ##   resp = http.GET('/api/hello', query={'name'=>'World'})
+    ##   assert_equal 200, resp.status
+    ##   assert_equal "application/json", resp.headers['Content-Type']
+    ##   assert_equal {"message"=>"Hello World!"}, resp.body_json
+    ##
+    class Wrapper
+
+      def initialize(app, env=nil)
+        #; [!zz9yg] takes app and optional env objects.
+        @app = app
+        @env = env
+        @last_env = nil
+      end
+
+      attr_reader :last_env
+
+      def request(meth, path, query: nil, form: nil, multipart: nil, json: nil, input: nil, headers: nil, cookie: nil, env: nil)
+        #; [!r6sod] merges @env if passed for initializer.
+        env = env ? env.merge(@env) : @env if @env
+        #; [!4xpwa] creates env object and calls app with it.
+        environ = TestApp.new_env(meth, path,
+                                  query: query, form: form, multipart: multipart, json: json,
+                                  input: input, headers: headers, cookie: cookie, env: env)
+        @last_env = environ
+        status, headers, body = @app.call(environ)
+        #; [!eb153] returns Rack::TestApp::Result object.
+        return Result.new(status, headers, body)
+      end
+
+      def GET     path, kwargs={}; request(:GET    , path, kwargs); end
+      def POST    path, kwargs={}; request(:POST   , path, kwargs); end
+      def PUT     path, kwargs={}; request(:PUT    , path, kwargs); end
+      def DELETE  path, kwargs={}; request(:DELETE , path, kwargs); end
+      def HEAD    path, kwargs={}; request(:HEAD   , path, kwargs); end
+      def PATCH   path, kwargs={}; request(:PATCH  , path, kwargs); end
+      def OPTIONS path, kwargs={}; request(:OPTIONS, path, kwargs); end
+      def TRACE   path, kwargs={}; request(:TRACE  , path, kwargs); end
+
+    end
+
+
   end
 
 
