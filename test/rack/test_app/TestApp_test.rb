@@ -206,6 +206,14 @@ describe Rack::TestApp do
       assert_equal expected, env['rack.session']
     end
 
+    it 'allows removing environ entries' do
+      environ = {
+        'CONTENT_LENGTH' => nil
+      }
+      env = Rack::TestApp.new_env(:PUT, '/', env: environ)
+      refute_includes env.keys, "CONTENT_LENGTH"
+    end
+
     it "[!pmefk] sets 'HTTP_COOKIE' when 'cookie' kwarg specified." do
       env = Rack::TestApp.new_env(cookies: 'c1=v1')
       assert_equal 'c1=v1', env['HTTP_COOKIE']
