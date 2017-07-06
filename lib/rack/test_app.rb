@@ -289,12 +289,16 @@ module Rack
         when /\Arack\./
           # ok
         when /\A[A-Z]+(_[A-Z0-9]+)*\z/
-          value.is_a?(String)  or
+          value.is_a?(String) || value.nil?  or
             raise ArgumentError.new("rack env value should be a string but got: #{value.inspect}")
         else
           raise ArgumentError.new("invalid rack env key: #{name}")
         end
-        environ[name] = value
+        if value.nil?
+          environ.delete(name)
+        else
+          environ[name] = value
+        end
       end if env
       #; [!pmefk] sets 'HTTP_COOKIE' when 'cookie' kwarg specified.
       if cookies
