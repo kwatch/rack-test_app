@@ -452,14 +452,14 @@ module Rack
         return Result.new(status, headers, body)
       end
 
-      def GET     path, kwargs={}; request(:GET    , path, kwargs); end
-      def POST    path, kwargs={}; request(:POST   , path, kwargs); end
-      def PUT     path, kwargs={}; request(:PUT    , path, kwargs); end
-      def DELETE  path, kwargs={}; request(:DELETE , path, kwargs); end
-      def HEAD    path, kwargs={}; request(:HEAD   , path, kwargs); end
-      def PATCH   path, kwargs={}; request(:PATCH  , path, kwargs); end
-      def OPTIONS path, kwargs={}; request(:OPTIONS, path, kwargs); end
-      def TRACE   path, kwargs={}; request(:TRACE  , path, kwargs); end
+      def GET     path, kwargs={}; request(:GET    , path, **kwargs); end
+      def POST    path, kwargs={}; request(:POST   , path, **kwargs); end
+      def PUT     path, kwargs={}; request(:PUT    , path, **kwargs); end
+      def DELETE  path, kwargs={}; request(:DELETE , path, **kwargs); end
+      def HEAD    path, kwargs={}; request(:HEAD   , path, **kwargs); end
+      def PATCH   path, kwargs={}; request(:PATCH  , path, **kwargs); end
+      def OPTIONS path, kwargs={}; request(:OPTIONS, path, **kwargs); end
+      def TRACE   path, kwargs={}; request(:TRACE  , path, **kwargs); end
 
       ## define aliases because ruby programmer prefers #get() rather than #GET().
       alias get     GET
