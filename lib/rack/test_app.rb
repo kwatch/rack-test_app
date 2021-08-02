@@ -232,7 +232,7 @@ module Rack
         end
         input = multipart.to_s
         #; [!dq33d] sets content type with 'multipart/form-data'.
-        m = /\A--(\S+)\r\n/.match(input)  or
+        input =~ /\A--(\S+)\r\n/  or
           raise ArgumentError.new("invalid multipart format.")
         boundary = $1
         ctype = "multipart/form-data; boundary=#{boundary}"
