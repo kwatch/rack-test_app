@@ -31,7 +31,7 @@ describe Rack::TestApp::Wrapper do
       #
       wrapper = Rack::TestApp::Wrapper.new(app)
       assert_equal app, wrapper.instance_variable_get('@app')
-      assert_equal nil, wrapper.instance_variable_get('@env')
+      assert_nil        wrapper.instance_variable_get('@env')
     end
 
   end

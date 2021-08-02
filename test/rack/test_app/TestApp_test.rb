@@ -167,7 +167,7 @@ describe Rack::TestApp do
       assert_equal 'off'           , env['HTTPS']
       assert_equal ''              , env['SCRIPT_NAME']
       assert_equal '0'             , env['CONTENT_LENGTH']
-      assert_equal nil             , env['CONTENT_TYPE']
+      assert_nil                     env['CONTENT_TYPE']
     end
 
     it "[!ezvdn] unsets CONTENT_TYPE when not input." do

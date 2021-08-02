@@ -36,8 +36,7 @@ describe Rack::TestApp::Util do
   describe '.#build_query_string()' do
 
     it "[!098ac] returns nil when argument is nil." do
-      expected = nil
-      assert_equal expected, Rack::TestApp::Util.build_query_string(nil)
+      assert_nil Rack::TestApp::Util.build_query_string(nil)
     end
 
     it "[!z9ds2] returns argument itself when it is a string." do

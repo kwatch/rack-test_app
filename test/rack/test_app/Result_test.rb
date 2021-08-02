@@ -175,7 +175,7 @@ describe Rack::TestApp::Result do
     it "[!oapns] returns nil if cookie not exists." do
       headers = {'Set-Cookie' => 'name1=value1'}
       r = Rack::TestApp::Result.new(200, headers, [])
-      assert_equal nil, r.cookie_value('name2')
+      assert_nil r.cookie_value('name2')
     end
 
   end
