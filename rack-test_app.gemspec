@@ -16,7 +16,7 @@ END
   spec.homepage      = "https://github.com/kwatch/rack-test_app"
   spec.license       = "MIT-LICENCE"
   spec.files         = Dir[*%w[
-                         README.md MIT-LICENSE.txt Rakefile rack-test_app.gemspec
+                         README.md MIT-LICENSE.txt Rakefile.rb rack-test_app.gemspec
                          lib/rack/test_app.rb
 			 test/test_helper.rb
 			 test/rack/**/*_test.rb
