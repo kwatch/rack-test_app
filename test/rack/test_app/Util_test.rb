@@ -115,7 +115,7 @@ describe Rack::TestApp::Util do
       set_cookie = "name1=value1; Max-Age=3600"
       c = Rack::TestApp::Util.parse_set_cookie(set_cookie)
       assert_equal 3600, c[:max_age]
-      assert_kind_of Fixnum, c[:max_age]
+      assert_kind_of Integer, c[:max_age]
     end
 
     it "[!wgzyz] raises error when Max-Age attribute value is not a positive integer." do
