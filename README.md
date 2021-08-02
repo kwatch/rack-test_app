@@ -36,7 +36,7 @@ app = proc {|env|
   [200, headers, [text]]
 }
 
-## crate wrapper objects
+## create wrapper objects
 http  = Rack::TestApp.wrap(Rack::Lint.new(app))
 https = Rack::TestApp.wrap(Rack::Lint.new(app), env: {'HTTPS'=>'on'})
 
