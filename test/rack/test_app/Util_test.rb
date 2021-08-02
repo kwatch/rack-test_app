@@ -140,7 +140,7 @@ describe Rack::TestApp::Util do
       arr = (1..1000).map { Rack::TestApp::Util.randstr_b64() }
       assert_equal 1000, arr.sort.uniq.length
       arr.each do |s|
-        assert_match /\A[-\w]+\z/, s
+        assert_match(/\A[-\w]+\z/, s)
         assert_equal 27, s.length
       end
     end

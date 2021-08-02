@@ -103,7 +103,8 @@ describe Rack::TestApp do
 
       it "[!dq33d] sets content type with 'multipart/form-data'." do
         env = Rack::TestApp.new_env(multipart: {})
-        assert_match /\Amultipart\/form-data; boundary=\S+\z/, env['CONTENT_TYPE']
+        rexp = /\Amultipart\/form-data; boundary=\S+\z/
+        assert_match rexp, env['CONTENT_TYPE']
       end
 
       it "[!gko8g] 'multipart:' kwarg accepts Hash object (which is converted into multipart data)." do
@@ -149,7 +150,7 @@ describe Rack::TestApp do
       #
       assert_equal Rack::VERSION   , env['rack.version']
       assert_kind_of Array         , env['rack.version']
-      assert_match /\A\[1, \d+\]\z/, env['rack.version'].inspect
+      assert_match(/\A\[1, \d+\]\z/, env['rack.version'].inspect)
       assert_kind_of StringIO      , env['rack.input']
       assert_kind_of StringIO      , env['rack.errors']
       assert_equal true            , env['rack.multithread']
