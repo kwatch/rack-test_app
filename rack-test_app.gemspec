@@ -6,8 +6,8 @@ require 'rack/test_app'
 Gem::Specification.new do |spec|
   spec.name          = "rack-test_app"
   spec.version       = Rack::TestApp::VERSION
-  spec.authors       = ["makoto kuwata"]
-  spec.email         = ["kwa@kuwata-lab.com"]
+  spec.authors       = ["kwatch"]
+  spec.email         = ["kwatch@gmail.com"]
   spec.summary       = "more intuitive testing helper library for Rack app"
   spec.description   = <<END
 Rack::TestApp is another testing helper library for Rack application.
