@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+copyright = "copyright(c) 2015-2021 kuwata-lab.com all rights reserved"
+
 require "bundler/gem_tasks"
 require "rake/testtask"
 
@@ -41,12 +45,27 @@ task :edit do
     raise "ERROR: 'rel' environment variable expected."
   filenames = Dir[*%w[lib/**/*.rb test/**/*_test.rb]]
   filenames.each do |fname|
-    File.open(fname, 'r+', encoding: 'utf-8') do |f|
-      content = f.read()
-      x = content.gsub!(/\$Release:.*?\$/, "$Release: #{rel} $")
+    changed = edit_file(fname) {|s|
+      s = s.gsub(/\$Release:.*?\$/, "$"+"Release: #{rel} $")
+      #s = s.gsub(/\$Copyright:.*?\$/, "$"+"Copyright: #{copyright} $")
+      s
+    }
+    puts "[changed] #{fname}" if changed
+  end
+end
+
+
+def edit_file(fname, &b)
+  File.open(fname, 'r+', encoding: 'utf-8') do |f|
+    s1 = f.read()
+    s2 = yield s1
+    if s1 != s2
       f.rewind()
       f.truncate(0)
-      f.write(content)
+      f.write(s2)
+      return true
+    else
+      return false
     end
   end
 end
