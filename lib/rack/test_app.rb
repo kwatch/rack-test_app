@@ -428,7 +428,7 @@ module Rack
       def with(headers: nil, cookies: nil, env: nil)
         tmp_env = TestApp.new_env(headers: headers, cookies: cookies, env: env)
         new_env = @env ? @env.dup : {}
-        http_headers = tmp_env.each do |k, v|
+        tmp_env.each do |k, v|
           new_env[k] = v if k.start_with?('HTTP_')
         end
         new_wrapper = self.class.new(@app, new_env)
